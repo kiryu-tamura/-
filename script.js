@@ -61,17 +61,33 @@ function preloadImages() { /* ... (省略) ... */
     }
 }
 
-// テキスト折り返し描画関数 (変更なし)
-function wrapText(context, text, x, y, maxWidth, lineHeight) { /* ... (省略) ... */
-    const lines = text.split('\n'); let currentY = y;
+// テキスト折り返し描画関数 (デバッグ用ログ追加)
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    const lines = text.split('\n');
+    let currentY = y;
+
     for (let i = 0; i < lines.length; i++) {
-        const words = lines[i].split(' '); let line = '';
+        const words = lines[i].split(' ');
+        let line = '';
+
         for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' '; const metrics = context.measureText(testLine);
+            const testLine = line + words[n] + ' ';
+            const metrics = context.measureText(testLine);
             const testWidth = metrics.width;
-            if (testWidth > maxWidth && n > 0) { context.fillText(line, x, currentY); line = words[n] + ' '; currentY += lineHeight; } else { line = testLine; }
+            if (testWidth > maxWidth && n > 0) {
+                // *** 追加: ログ出力 1 ***
+                console.log(`wrapText: Drawing line part 1: "${line}" at Y=${currentY}`);
+                context.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
         }
-        context.fillText(line, x, currentY); currentY += lineHeight;
+        // *** 追加: ログ出力 2 ***
+        console.log(`wrapText: Drawing line part 2 (final): "${line}" at Y=${currentY}`);
+        context.fillText(line, x, currentY);
+        currentY += lineHeight;
     }
 }
 
