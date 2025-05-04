@@ -1,0 +1,14 @@
+/* style.css */
+body {
+    display: flex; /* Flexboxを使って中央揃えを有効にする */
+    justify-content: center; /* 水平方向の中央揃え */
+    align-items: center; /* 垂直方向の中央揃え */
+    min-height: 100vh; /* 画面の高さいっぱいに広げる */
+    margin: 0; /* body要素のデフォルトマージンを削除 */
+    background-color: #e0e0e0; /* 背景色を少し濃いグレーに */
+}
+
+canvas {
+    border: 1px solid black; /* Canvasの枠線を黒色で表示（分かりやすさのため） */
+    background-color: white; /* Canvas自体の背景色は白にする */
+}
