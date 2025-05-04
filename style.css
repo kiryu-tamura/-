@@ -1,14 +1,26 @@
 /* style.css */
 body {
-    display: flex; /* Flexboxを使って中央揃えを有効にする */
+    display: flex;
     justify-content: center; /* 水平方向の中央揃え */
-    align-items: center; /* 垂直方向の中央揃え */
-    min-height: 100vh; /* 画面の高さいっぱいに広げる */
-    margin: 0; /* body要素のデフォルトマージンを削除 */
-    background-color: #e0e0e0; /* 背景色を少し濃いグレーに */
+    align-items: center;   /* 垂直方向の中央揃え */
+    min-height: 100vh;     /* 画面の高さいっぱいに */
+    margin: 0;
+    background-color: #e0e0e0;
+    padding: 10px;         /* *** 追加: 画面端に少し余白 *** */
+    box-sizing: border-box;/* *** 追加: paddingを含めて計算 *** */
 }
 
 canvas {
-    border: 1px solid black; /* Canvasの枠線を黒色で表示（分かりやすさのため） */
-    background-color: white; /* Canvas自体の背景色は白にする */
+    border: 1px solid black;
+    background-color: white;
+    /* --- ↓↓↓ ここから追加・変更 ↓↓↓ --- */
+    display: block;        /* canvas下の余分なスペース削除 */
+    max-width: 100%;     /* コンテナ幅に合わせて最大幅を設定 */
+    height: auto;        /* 幅に合わせて高さを自動調整（縦横比維持）*/
+    /* --- ↑↑↑ ここまで追加・変更 ↑↑↑ --- */
+}
+
+/* HTMLのh1タイトルはCanvas描画と重複するので非表示にする (任意) */
+h1 {
+    display: none;
 }
