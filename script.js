@@ -1,4 +1,4 @@
-// script.js (完成版 - Q9再修正)
+// script.js (完成版 - テキスト描画再修正)
 
 // --- グローバル変数定義 ---
 const canvas = document.getElementById('gameCanvas');
@@ -69,44 +69,51 @@ function preloadImages() { /* ... (省略) ... */
 
 // *** ↓↓↓ wrapText 関数の修正箇所 ↓↓↓ ***
 /**
- * 指定された幅でテキストを折り返して描画する関数
+ * 指定された幅でテキストを折り返して描画し、最終的なY座標を返す関数
  * @param {CanvasRenderingContext2D} context - Canvasの2Dコンテキスト
  * @param {string} text - 描画するテキスト
  * @param {number} x - 描画開始位置のX座標
  * @param {number} y - 描画開始位置のY座標
  * @param {number} maxWidth - テキストの最大幅
  * @param {number} lineHeight - 行の高さ
+ * @returns {number} - 描画後の最終的なY座標
  */
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
-    const lines = text.split('\n');
     let currentY = y;
+    // \n で明示的に改行されている場合に対応
+    const paragraphs = text.split('\n');
 
-    for (let i = 0; i < lines.length; i++) {
-        const words = lines[i].split(' ');
-        let line = '';
+    for (const paragraph of paragraphs) {
+        // スペースで単語に分割
+        const words = paragraph.split(' ');
+        let currentLine = ''; // 現在処理中の行
 
-        for (let n = 0; n < words.length; n++) {
-            // 現在の単語が空文字列ならスキップ (連続スペース対策)
-            if (words[n] === '') continue;
-
-            const testLine = line + words[n] + ' ';
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            // テスト用の行を作成 (現在の行が空なら単語のみ、そうでなければスペース区切りで連結)
+            const testLine = currentLine === '' ? word : currentLine + ' ' + word;
             const metrics = context.measureText(testLine);
-            const testWidth = metrics.width;
 
-            if (testWidth > maxWidth && line !== '') { // lineが空でない場合のみ改行
-                context.fillText(line.trim(), x, currentY); // 行末スペース削除して描画
-                line = words[n] + ' ';
-                currentY += lineHeight;
+            // テスト行が最大幅を超え、かつ現在の行が空でない場合
+            if (metrics.width > maxWidth && currentLine !== '') {
+                context.fillText(currentLine, x, currentY); // 現在の行を描画
+                currentLine = word; // 新しい行を現在の単語から開始
+                currentY += lineHeight; // Y座標を更新
             } else {
-                line = testLine;
+                // 最大幅を超えなければ、テスト行を現在の行にする
+                currentLine = testLine;
             }
         }
-        // 最後の行を描画 (空でない場合)
-        if (line.trim() !== '') {
-            context.fillText(line.trim(), x, currentY);
+
+        // 段落の最後の行を描画 (空でなければ)
+        if (currentLine.trim() !== '') {
+            context.fillText(currentLine.trim(), x, currentY);
             currentY += lineHeight;
         }
+         // 段落間（\nがあった場所）に少しスペースを追加する場合（任意）
+        // if (paragraphs.length > 1) currentY += lineHeight * 0.5;
     }
+    return currentY; // 最終的なY座標を返す
 }
 // *** ↑↑↑ wrapText 関数の修正箇所 ↑↑↑ ***
 
@@ -132,48 +139,81 @@ function drawQuestionScreen() {
     ctx.font = '24px sans-serif';
     ctx.textAlign = 'left';
     const questionText = `Q${currentQuestionIndex + 1}. ${currentQuestion.text}`;
-    const questionX = 50;
-    const questionY = 80;
-    // maxWidthに少しバッファを持たせる
-    const questionMaxWidth = canvas.width - questionX * 2 - 10; // 左右マージンに加え、10px余裕を持たせる
+    const questionX = 40; // マージンを少し広げる
+    const questionY = 70; // 開始Y座標を少し上げる
+    const questionMaxWidth = canvas.width - questionX * 2; // 最大幅の計算を見直し
     const questionLineHeight = 30;
-    wrapText(ctx, questionText, questionX, questionY, questionMaxWidth, questionLineHeight);
+    // 質問文描画後のY座標を取得
+    let currentY = wrapText(ctx, questionText, questionX, questionY, questionMaxWidth, questionLineHeight);
 
-    // 選択肢ボタンの描画 (変更なし)
+    // 選択肢ボタンを描画 (開始Y座標を動的に設定)
     choiceButtons = [];
-    const buttonWidth = 600; const buttonHeight = 50; const startY = 180; const gap = 20;
-    const startX = canvas.width / 2 - buttonWidth / 2;
+    const buttonWidth = canvas.width * 0.8; // 幅をCanvas幅の80%に
+    const buttonHeight = 50;
+    const startY = currentY + 20; // 質問文の下 + 20pxのギャップ
+    const gap = 15; // ボタン間の隙間を少し詰める
+    const startX = canvas.width / 2 - buttonWidth / 2; // 中央揃え
+
     currentQuestion.choices.forEach((choice, index) => {
         const buttonY = startY + index * (buttonHeight + gap);
         const button = {x: startX, y: buttonY, width: buttonWidth, height: buttonHeight, choiceIndex: index};
         choiceButtons.push(button);
         ctx.fillStyle = 'lightgreen'; ctx.fillRect(button.x, button.y, button.width, button.height);
         ctx.fillStyle = 'black'; ctx.font = '18px sans-serif'; ctx.textAlign = 'left';
-        const textX = button.x + 15; const textY = button.y + buttonHeight / 2 + 6;
+        const textX = button.x + 15;
+        const textY = button.y + buttonHeight / 2 + 6; // 垂直中央揃え
+        // TODO: 選択肢もwrapTextを使うのが望ましい
         ctx.fillText(choice.text, textX, textY);
     });
 }
 // *** ↑↑↑ drawQuestionScreen 関数の修正箇所 ↑↑↑ ***
 
-// 描画関数: 結果画面 (変更なし)
-function drawResultScreen() { /* ... (省略) ... */
-    ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#f0f0f0'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const content = resultContents[resultCharacter]; const image = characterImages[resultCharacter];
-    if (!content) { ctx.fillStyle = 'red'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('エラー: 結果データが見つかりません。', canvas.width / 2, 100); return; }
+// *** ↓↓↓ drawResultScreen 関数の修正箇所 ↓↓↓ ***
+function drawResultScreen() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f0f0f0'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const content = resultContents[resultCharacter];
+    const image = characterImages[resultCharacter];
+
+    if (!content) { /* ... エラー処理 ... */ return; }
+
+    // 1. 見出しを描画
     ctx.fillStyle = 'black'; ctx.font = '30px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(`あなたのキャラクタータイプは【${content.name}】です！`, canvas.width / 2, 60);
-    const imgWidth = 200; const imgHeight = image.height * (imgWidth / image.width); const imgX = canvas.width / 2 - imgWidth / 2; const imgY = 100;
-    if (image && image.complete && image.naturalWidth !== 0) { ctx.drawImage(image, imgX, imgY, imgWidth, imgHeight); } else { ctx.fillStyle = 'grey'; ctx.fillRect(imgX, imgY, imgWidth, imgHeight); ctx.fillStyle = 'white'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('画像表示不可', canvas.width/2, imgY + imgHeight / 2); console.error(`画像の描画に失敗: ${resultCharacter}`); }
+
+    // 2. 画像を描画
+    const imgWidth = 180; // 画像サイズを少し小さく
+    const imgHeight = image.height * (imgWidth / image.width);
+    const imgX = canvas.width / 2 - imgWidth / 2;
+    const imgY = 90; // 画像のY座標を少し上げる
+    if (image && image.complete && image.naturalWidth !== 0) { ctx.drawImage(image, imgX, imgY, imgWidth, imgHeight); }
+    else { /* ... 代替表示 ... */ console.error(`画像の描画に失敗: ${resultCharacter}`); }
+
+    // 3. テキスト描画エリアの設定
     ctx.fillStyle = 'black'; ctx.font = '16px sans-serif'; ctx.textAlign = 'left';
-    const textX = 50; const textMaxWidth = canvas.width - textX * 2; const textLineHeight = 24;
-    const descY = imgY + imgHeight + 30;
-    wrapText(ctx, `【${content.name}とは？】\n${content.description}`, textX, descY, textMaxWidth, textLineHeight);
-    const reasonY = 360; // 必要に応じて調整
-    wrapText(ctx, `【あなたが${content.name}タイプの理由】\n${content.reason}`, textX, reasonY, textMaxWidth, textLineHeight);
-    ctx.fillStyle = 'lightcoral'; ctx.fillRect(replayButton.x, replayButton.y, replayButton.width, replayButton.height);
+    const textX = 40; // 左右マージン
+    const textMaxWidth = canvas.width - textX * 2; // 最大幅
+    const textLineHeight = 22; // 行高を少し詰める
+    let currentTextY = imgY + imgHeight + 25; // 画像の下からの開始Y座標
+
+    // 4. キャラクター紹介文を描画 (wrapTextを使用し、次のY座標を取得)
+    currentTextY = wrapText(ctx, `【${content.name}とは？】\n${content.description}`, textX, currentTextY, textMaxWidth, textLineHeight);
+
+    // 5. 診断理由を描画 (前のテキストの下から開始)
+    currentTextY += 10; // 紹介文と理由の間に少しスペース
+    currentTextY = wrapText(ctx, `【あなたが${content.name}タイプの理由】\n${content.reason}`, textX, currentTextY, textMaxWidth, textLineHeight);
+
+    // 6. もう一度プレイボタンを描画 (Y座標を少し上げる)
+    const replayButtonY = canvas.height - 70; // 下からの位置で固定
+    ctx.fillStyle = 'lightcoral';
+    ctx.fillRect(replayButton.x, replayButtonY, replayButton.width, replayButton.height);
     ctx.fillStyle = 'black'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('もう一度診断する', canvas.width / 2, replayButton.y + 35);
+    ctx.fillText('もう一度診断する', canvas.width / 2, replayButtonY + 35);
+    // replayButton オブジェクトのY座標も更新（クリック判定用）
+    replayButton.y = replayButtonY;
 }
+// *** ↑↑↑ drawResultScreen 関数の修正箇所 ↑↑↑ ***
 
 // 結果計算関数 (変更なし)
 function calculateResult() { /* ... (省略) ... */
@@ -189,10 +229,11 @@ function drawGame() { /* ... (省略) ... */
     if (gameState === 'TITLE') { drawTitleScreen(); } else if (gameState === 'QUESTION') { drawQuestionScreen(); } else if (gameState === 'RESULT') { if (resultCharacter === '') { calculateResult(); } drawResultScreen(); }
 }
 
-// クリックイベント処理関数 (変更なし)
+// クリックイベント処理関数 (変更なし、replayButton.yの更新は描画時に行うため不要)
 function handleClick(event) { /* ... (省略) ... */
     const rect = canvas.getBoundingClientRect(); const clickX = event.clientX - rect.left; const clickY = event.clientY - rect.top;
-    if (gameState === 'TITLE') { if (clickX >= startButton.x && clickX <= startButton.x + startButton.width && clickY >= startButton.y && clickY <= startButton.y + startButton.height) { console.log('スタートボタンクリック'); gameState = 'QUESTION'; currentQuestionIndex = 0; points = { chihiro: 0, haku: 0, yubaba: 0, zeniba: 0, kaonashi: 0, kamaji: 0, rin: 0, bou: 0 }; resultCharacter = ''; drawGame(); } } else if (gameState === 'QUESTION') { choiceButtons.forEach(button => { if (clickX >= button.x && clickX <= button.x + button.width && clickY >= button.y && clickY <= button.y + button.height) { console.log(`Q${currentQuestionIndex + 1} - 選択肢 ${button.choiceIndex + 1} クリック`); const selectedChoice = questions[currentQuestionIndex].choices[button.choiceIndex]; for (const char in selectedChoice.points) { points[char] = (points[char] || 0) + selectedChoice.points[char]; } currentQuestionIndex++; if (currentQuestionIndex >= questions.length) { gameState = 'RESULT'; } drawGame(); } }); } else if (gameState === 'RESULT') { if (clickX >= replayButton.x && clickX <= replayButton.x + replayButton.width && clickY >= replayButton.y && clickY <= replayButton.y + replayButton.height) { console.log('もう一度診断ボタンクリック'); gameState = 'TITLE'; resultCharacter = ''; drawGame(); } }
+    if (gameState === 'TITLE') { if (clickX >= startButton.x && clickX <= startButton.x + startButton.width && clickY >= startButton.y && clickY <= startButton.y + startButton.height) { console.log('スタートボタンクリック'); gameState = 'QUESTION'; currentQuestionIndex = 0; points = { chihiro: 0, haku: 0, yubaba: 0, zeniba: 0, kaonashi: 0, kamaji: 0, rin: 0, bou: 0 }; resultCharacter = ''; drawGame(); } } else if (gameState === 'QUESTION') { choiceButtons.forEach(button => { if (clickX >= button.x && clickX <= button.x + button.width && clickY >= button.y && clickY <= button.y + button.height) { console.log(`Q${currentQuestionIndex + 1} - 選択肢 ${button.choiceIndex + 1} クリック`); const selectedChoice = questions[currentQuestionIndex].choices[button.choiceIndex]; for (const char in selectedChoice.points) { points[char] = (points[char] || 0) + selectedChoice.points[char]; } currentQuestionIndex++; if (currentQuestionIndex >= questions.length) { gameState = 'RESULT'; } drawGame(); } }); } else if (gameState === 'RESULT') { // replayButton.y は drawResultScreen で更新された値を使う
+        if (clickX >= replayButton.x && clickX <= replayButton.x + replayButton.width && clickY >= replayButton.y && clickY <= replayButton.y + replayButton.height) { console.log('もう一度診断ボタンクリック'); gameState = 'TITLE'; resultCharacter = ''; drawGame(); } }
 }
 
 // --- 初期化処理 ---
