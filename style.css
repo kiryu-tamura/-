@@ -60,16 +60,19 @@ body {
 }
 
 /* --- タイトル画面 --- */
+/* ロゴ画像用のスタイルは不要になったのでコメントアウトまたは削除
 #title-screen .logo-image {
     max-width: 150px;
     margin-bottom: 10px;
 }
-#title-screen h1 {
+*/
+#title-screen h1 { /* IDを付けて詳細度を上げることで、他のh1スタイルに影響されにくくする */
     font-family: var(--font-heading);
     color: var(--primary-color);
     font-size: 2.2em; /* 少し大きめに */
     margin-bottom: 10px;
     line-height: 1.3; /* 改行時の行間 */
+    display: block !important; /* ★★★ 強制的に表示 ★★★ (または下のh1非表示ルールを削除) */
 }
 #title-screen .subtitle {
     font-size: 1.1em;
@@ -212,6 +215,13 @@ body {
     background-color: var(--button-hover-bg);
     box-shadow: 0 5px 8px rgba(0, 0, 0, 0.25);
 }
+
+/* ★★★ 以前のCanvas用 h1 非表示ルールを削除 ★★★ */
+/*
+h1 {
+    display: none;
+}
+*/
 
 /* --- レスポンシブ対応 --- */
 @media (max-width: 600px) {
