@@ -4,17 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>千と千尋の正確診断</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> </head>
 <body>
 
-    <h1>千と千尋の正確診断</h1>
+    <div class="container">
 
-    <canvas id="gameCanvas" width="800" height="600">
-        お使いのブラウザはCanvasに対応していません。
-    </canvas>
+        <div id="title-screen" class="screen active">
+            <img src="images/logo_placeholder.png" alt="千と千尋の神隠し風ロゴ" class="logo-image"> <h1>千と千尋の<br>正確診断</h1>
+            <p class="subtitle">あなたを千と千尋のキャラクターに例えると？</p>
+            <button id="start-button" class="spirited-button">診断スタート！</button>
+        </div>
 
-    <script src="script.js"></script>
+        <div id="question-screen" class="screen">
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+                <span id="progress-text">1 / 10</span>
+            </div>
 
-</body>
+            <h2 id="question-text">質問文がここに入ります。</h2>
+            <div id="choices" class="choices-container">
+                </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h2>診断結果</h2>
+            <div class="result-card">
+                <img id="result-image" src="images/placeholder.png" alt="診断結果キャラクター">
+                <h3 id="result-name">【キャラクター名】</h3>
+                <div class="result-details">
+                    <h4>【<span id="result-name-desc"></span>とは？】</h4>
+                    <p id="result-description">キャラクターの説明がここに入ります。</p>
+                </div>
+                <div class="result-details">
+                    <h4>【あなたが<span id="result-name-reason"></span>タイプの理由】</h4>
+                    <p id="result-reason">診断の理由がここに入ります。</p>
+                </div>
+            </div>
+            <button id="replay-button" class="spirited-button">もう一度診断する</button>
+            </div>
+
+    </div>
+
+    <script src="script.js"></script> </body>
 </html>
