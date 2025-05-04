@@ -226,5 +226,5 @@ replayButton.addEventListener('click', replayGame);
 
 // --- 初期化処理 ---
 showScreen('title-screen'); // 最初にタイトル画面を表示
-console.log('千と千尋の正確診断ゲームへようこそ！ (HTMLベース版)');
+console.log('千と千尋の性格診断ゲームへようこそ！ (HTMLベース版)');
 
